@@ -84,4 +84,25 @@ public class CategoryProductsController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(productModel);
 	}
 
+	@RequestMapping(path = "/{productid}", method = RequestMethod.DELETE)
+	public ResponseEntity<Void> deleteProduct(@PathVariable Long categoryid, @PathVariable Long productid) {
+
+		final Category category = categoryService.getCategoryById(categoryid)
+				.orElseThrow(() -> new NotFoundException(categoryid));
+
+		// Getting the requiring product; or throwing exception if not found
+		final Product product = productService.getProductById(productid)
+				.orElseThrow(() -> new NotFoundException(productid));
+
+		// check product contains category id or throwing exception if not contains
+		if (!productService.hasCategory(product, category)) {
+			throw new IllegalArgumentException(
+					"product " + product.getId() + " do not contains category " + category.getId());
+		}
+
+		// remove product from category...
+		productService.removeCategory(product, category);
+
+		return ResponseEntity.noContent().build();
+	}
 }
